@@ -15,19 +15,19 @@ import java.util.Optional;
 public interface ParkingService extends AbstractService {
 
     /* ---- Actions ----- */
-    void createParkingLot(int level, int capacity) throws ParkingException;
+    boolean createParkingLot(int level, int capacity) throws ParkingException;
 
     Optional<Integer> park(int level, Vehicle vehicle) throws ParkingException;
 
-    void unPark(int level, int slotNumber) throws ParkingException;
+    String unPark(int level, int slotNumber) throws ParkingException;
 
-    void getStatus(int level) throws ParkingException;
+    String getStatus(int level) throws ParkingException;
 
     Optional<Integer> getAvailableSlotsCount(int level) throws ParkingException;
 
-    void getRegNumberForColor(int level, String color) throws ParkingException;
+    String getRegNumberForColor(int level, String color) throws ParkingException;
 
-    void getSlotNumbersFromColor(int level, String colour) throws ParkingException;
+    String getSlotNumbersFromColor(int level, String colour) throws ParkingException;
 
     int getSlotNoFromRegistrationNo(int level, String registrationNo) throws ParkingException;
 

@@ -6,8 +6,10 @@ package io.parkinglot.service.impl;
 import io.parkinglot.constants.Constants;
 import io.parkinglot.dao.ParkingDataManager;
 import io.parkinglot.dao.impl.MemoryParkingManager;
+import io.parkinglot.exception.AlreadyParkedException;
 import io.parkinglot.exception.ErrorCode;
 import io.parkinglot.exception.ParkingException;
+import io.parkinglot.exception.ParkingLotFullException;
 import io.parkinglot.model.Vehicle;
 import io.parkinglot.model.strategy.NearestFirstParkingStrategy;
 import io.parkinglot.service.ParkingService;
@@ -32,7 +34,7 @@ public class ParkingServiceImpl implements ParkingService {
     private ParkingDataManager<Vehicle> dataManager;
 
     @Override
-    public void createParkingLot(int level, int capacity) throws ParkingException {
+    public boolean createParkingLot(int level, int capacity) throws ParkingException {
         if (dataManager != null) {
             throw new ParkingException(ErrorCode.PARKING_ALREADY_EXIST.getMessage());
         }
@@ -42,6 +44,8 @@ public class ParkingServiceImpl implements ParkingService {
 
         this.dataManager = MemoryParkingManager.getInstance(parkingLevels, capacityList, new NearestFirstParkingStrategy());
         System.out.println("Created parking lot with " + capacity + " slots");
+
+        return true;
     }
 
     @Override
@@ -54,8 +58,8 @@ public class ParkingServiceImpl implements ParkingService {
 
             value = Optional.of(dataManager.parkCar(level, vehicle));
             switch (value.get()) {
-                case Constants.NOT_AVAILABLE -> System.out.println("Sorry, parking lot is full");
-                case Constants.VEHICLE_ALREADY_EXIST -> System.out.println("Sorry, vehicle is already parked.");
+                case Constants.NOT_AVAILABLE -> throw new ParkingLotFullException("Sorry, parking lot is full");
+                case Constants.VEHICLE_ALREADY_EXIST -> throw new AlreadyParkedException("Sorry, vehicle is already parked.");
                 default -> System.out.println("Allocated slot number: " + value.get());
             }
         } catch (Exception e) {
@@ -74,15 +78,15 @@ public class ParkingServiceImpl implements ParkingService {
     }
 
     @Override
-    public void unPark(int level, int slotNumber) throws ParkingException {
+    public String unPark(int level, int slotNumber) throws ParkingException {
         lock.writeLock().lock();
         try {
             validateParkingLot();
 
             if (dataManager.leaveCar(level, slotNumber))
-                System.out.println("Slot number " + slotNumber + " is free");
+                return "Slot number " + slotNumber + " is free";
             else
-                System.out.println("Slot number is Empty Already.");
+                return "Slot number is Empty Already.";
         } catch (Exception e) {
             throw new ParkingException(ErrorCode.INVALID_VALUE.getMessage().replace("{variable}", "slot_number"), e);
         } finally {
@@ -91,20 +95,24 @@ public class ParkingServiceImpl implements ParkingService {
     }
 
     @Override
-    public void getStatus(int level) throws ParkingException {
+    public String getStatus(int level) throws ParkingException {
         lock.readLock().lock();
 
         try {
             validateParkingLot();
 
-            System.out.println("Slot No.\tRegistration No.\tColor");
+            String result;
             List<String> statusList = dataManager.getStatus(level);
 
             if (statusList.isEmpty())
-                System.out.println("Sorry, parking lot is empty.");
+                result = """
+                        Sorry, parking lot is empty.
+                        """;
             else {
-                statusList.forEach(System.out::println);
+                result = "Slot No.\tRegistration No.\tColor\n" + String.join("\n", statusList);
             }
+
+            return result;
         } catch (Exception e) {
             throw new ParkingException(ErrorCode.PROCESSING_ERROR.getMessage(), e);
         } finally {
@@ -129,16 +137,16 @@ public class ParkingServiceImpl implements ParkingService {
     }
 
     @Override
-    public void getRegNumberForColor(int level, String color) throws ParkingException {
+    public String getRegNumberForColor(int level, String color) throws ParkingException {
         lock.readLock().lock();
         try {
             validateParkingLot();
 
             List<String> registrationList = dataManager.getRegNumberForColor(level, color);
             if (registrationList.isEmpty())
-                System.out.println(NOT_FOUND);
+                return NOT_FOUND.getMessage();
             else
-                System.out.println(String.join(",", registrationList));
+                return String.join(",", registrationList);
         } catch (Exception e) {
             throw new ParkingException(ErrorCode.PROCESSING_ERROR.getMessage(), e);
         } finally {
@@ -147,20 +155,19 @@ public class ParkingServiceImpl implements ParkingService {
     }
 
     @Override
-    public void getSlotNumbersFromColor(int level, String color) throws ParkingException {
+    public String getSlotNumbersFromColor(int level, String color) throws ParkingException {
         lock.readLock().lock();
         try {
             validateParkingLot();
 
             List<Integer> slotList = dataManager.getSlotNumbersFromColor(level, color);
             if (slotList.isEmpty())
-                System.out.println(NOT_FOUND);
+                return NOT_FOUND.getMessage();
 
             StringJoiner joiner = new StringJoiner(",");
             slotList.stream().map(slot -> slot + "").forEach(joiner::add);
 
-            System.out.println(joiner);
-
+            return joiner.toString();
         } catch (Exception e) {
             throw new ParkingException(ErrorCode.PROCESSING_ERROR.getMessage(), e);
         } finally {
