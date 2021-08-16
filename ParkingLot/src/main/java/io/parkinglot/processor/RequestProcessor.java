@@ -9,19 +9,10 @@ import io.parkinglot.exception.ParkingException;
 import io.parkinglot.model.Car;
 import io.parkinglot.service.ParkingService;
 
-import javax.inject.Inject;
-
 /**
- *
  * @author saurabhk
  */
-public class RequestProcessor implements AbstractProcessor {
-    private final ParkingService parkingService;
-
-    @Inject
-    public RequestProcessor(ParkingService parkingService) {
-        this.parkingService = parkingService;
-    }
+public record RequestProcessor(ParkingService parkingService) implements AbstractProcessor {
 
     @Override
     public void execute(String input) throws ParkingException {

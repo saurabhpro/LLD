@@ -6,7 +6,7 @@ package io.parkinglot.exception;
 import java.io.Serial;
 
 /**
- * @author vaibhav
+ * @author saurabhk
  *
  */
 public class ParkingException extends Exception {

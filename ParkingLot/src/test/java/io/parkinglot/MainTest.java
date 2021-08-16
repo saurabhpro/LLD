@@ -1,13 +1,8 @@
 package io.parkinglot;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
 import io.parkinglot.exception.ErrorCode;
 import io.parkinglot.exception.ParkingException;
-import io.parkinglot.guice.BasicModule;
 import io.parkinglot.model.Car;
-import io.parkinglot.processor.AbstractProcessor;
-import io.parkinglot.processor.RequestProcessor;
 import io.parkinglot.service.ParkingService;
 import io.parkinglot.service.impl.ParkingServiceImpl;
 import org.junit.jupiter.api.AfterAll;

@@ -7,7 +7,7 @@ import io.parkinglot.constants.CommandInputMap;
 import io.parkinglot.exception.ParkingException;
 
 /**
- * @author vaibhav
+ * @author saurabhk
  *
  */
 public interface AbstractProcessor {

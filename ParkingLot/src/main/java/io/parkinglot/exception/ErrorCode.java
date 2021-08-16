@@ -1,7 +1,7 @@
 package io.parkinglot.exception;
 
 /**
- * @author vaibhav
+ * @author saurabhk
  */
 public enum ErrorCode {
     NOT_FOUND("Not Found"),
