@@ -6,41 +6,45 @@ import elevator.models.State;
 
 import java.util.TreeSet;
 
-public class Elevator {
+import static elevator.ThreadUtils.sleep;
+
+public class Elevator implements IElevator {
+    /**
+     * up jobs which cannot be processed now so put in pending queue
+     */
+    private final TreeSet<Request> upPendingJobs = new TreeSet<>();
+    /**
+     * down jobs which cannot be processed now so put in pending queue
+     */
+    private final TreeSet<Request> downPendingJobs = new TreeSet<>();
     private int currentFloor = 0;
     private Direction currentDirection = Direction.UP;
     private State currentState = State.IDLE;
-
     /**
      * jobs which are being processed
      */
     private TreeSet<Request> currentJobs = new TreeSet<>();
-    /**
-     * up jobs which cannot be processed now so put in pending queue
-     */
-    private TreeSet<Request> upPendingJobs = new TreeSet<>();
-    /**
-     * down jobs which cannot be processed now so put in pending queue
-     */
-    private TreeSet<Request> downPendingJobs = new TreeSet<>();
 
+    @Override
+    @SuppressWarnings("java:S2189")
     public void startElevator() {
         while (true) {
 
-            if (checkIfJob()) {
+            if (hasJob()) {
 
                 if (currentDirection == Direction.UP) {
                     Request request = currentJobs.pollFirst();
                     processUpRequest(request);
+
                     if (currentJobs.isEmpty()) {
                         addPendingDownJobsToCurrentJobs();
-
                     }
-
                 }
+
                 if (currentDirection == Direction.DOWN) {
                     Request request = currentJobs.pollLast();
                     processDownRequest(request);
+
                     if (currentJobs.isEmpty()) {
                         addPendingUpJobsToCurrentJobs();
                     }
@@ -50,37 +54,28 @@ public class Elevator {
         }
     }
 
-    public boolean checkIfJob() {
+    public boolean hasJob() {
         return !currentJobs.isEmpty();
     }
 
     private void processUpRequest(Request request) {
-        // The elevator is not on the floor where the person has requested it i.e. source floor. So first bring it there.
         int startFloor = currentFloor;
+
+        // The elevator is not on the floor where the person has requested it i.e. source floor. So first bring it there.
         if (startFloor < request.externalRequest().sourceFloor()) {
             for (int i = startFloor; i <= request.externalRequest().sourceFloor(); i++) {
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
+                sleep(1000);
                 System.out.println("We have reached floor -- " + i);
                 currentFloor = i;
             }
         }
+
         // The elevator is now on the floor where the person has requested it i.e. source floor. User can enter and go to the destination floor.
         System.out.println("Reached Source Floor--opening door");
 
         startFloor = currentFloor;
-
         for (int i = startFloor; i <= request.internalRequest().destinationFloor(); i++) {
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
+            sleep(1000);
             System.out.println("We have reached floor -- " + i);
             currentFloor = i;
             if (checkIfNewJobCanBeProcessed(request)) {
@@ -94,12 +89,8 @@ public class Elevator {
         int startFloor = currentFloor;
         if (startFloor < request.externalRequest().sourceFloor()) {
             for (int i = startFloor; i <= request.externalRequest().sourceFloor(); i++) {
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
+                sleep(1000);
+
                 System.out.println("We have reached floor -- " + i);
                 currentFloor = i;
             }
@@ -110,12 +101,8 @@ public class Elevator {
         startFloor = currentFloor;
 
         for (int i = startFloor; i >= request.internalRequest().destinationFloor(); i--) {
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
+            sleep(1000);
+
             System.out.println("We have reached floor -- " + i);
             currentFloor = i;
             if (checkIfNewJobCanBeProcessed(request)) {
@@ -125,7 +112,7 @@ public class Elevator {
     }
 
     private boolean checkIfNewJobCanBeProcessed(Request currentRequest) {
-        if (checkIfJob()) {
+        if (hasJob()) {
             if (currentDirection == Direction.UP) {
                 Request request = currentJobs.pollFirst();
 
@@ -136,7 +123,6 @@ public class Elevator {
                     return true;
                 }
                 currentJobs.add(request);
-
             }
 
             if (currentDirection == Direction.DOWN) {
@@ -149,9 +135,7 @@ public class Elevator {
                     return true;
                 }
                 currentJobs.add(request);
-
             }
-
         }
         return false;
     }
@@ -174,6 +158,7 @@ public class Elevator {
         }
     }
 
+    @Override
     public void addJob(Request request) {
         if (currentState == State.IDLE) {
             currentState = State.MOVING;
@@ -197,6 +182,7 @@ public class Elevator {
         }
     }
 
+    @Override
     public void addToPendingJobs(Request request) {
         if (request.externalRequest().directionToGo() == Direction.UP) {
             System.out.println("Add to pending up jobs");

@@ -1,3 +1,6 @@
 # Project exclude paths
+/Elevator/target/
 /ParkingLot/target/
+/StockBrokerage/target/
+/SnakesAndLader/target/
 .idea

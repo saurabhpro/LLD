@@ -1,7 +1,7 @@
 /**
  *
  */
-package io.parkinglot.constants;
+package worktech.parkinglot.constants;
 
 import java.util.Map;
 
@@ -12,13 +12,10 @@ import java.util.Map;
 public final class CommandInputMap {
     // command and expected arguments
     private static final Map<String, Integer> commandsParameterMap = Map.of(
-            Constants.CREATE_PARKING_LOT, 1,
-            Constants.PARK, 2,
+            Constants.CREATE_PARKING_LOT, 3,
+            Constants.PARK, 3,
             Constants.LEAVE, 1,
-            Constants.STATUS, 0,
-            Constants.REG_NUMBER_FOR_CARS_WITH_COLOR, 1,
-            Constants.SLOTS_NUMBER_FOR_CARS_WITH_COLOR, 1,
-            Constants.SLOTS_NUMBER_FOR_REG_NUMBER, 1);
+            Constants.DISPLAY, 2);
 
     private CommandInputMap() throws IllegalAccessException {
         throw new IllegalAccessException();
